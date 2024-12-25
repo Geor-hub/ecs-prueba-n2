@@ -24,11 +24,14 @@ jobs:
     - name: Build Docker image
       run: |
         docker build -t node .
+
+    - name: Tag Docker image to ECR
+      run: |
+        docker tag node:latest 867344443923.dkr.ecr.us-east-1.amazonaws.com/node:latest
         
     - name: Push Docker image to ECR
       run: |
-        docker tag node:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/node:latest
-        docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/node:latest
+        docker push 867344443923.dkr.ecr.us-east-1.amazonaws.com/node:latest
 
     - name: Update ECS service with new image
       run: |
