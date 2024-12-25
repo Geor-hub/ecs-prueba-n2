@@ -3,39 +3,38 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - main # Ejecutar el pipeline solo en la rama principal
+      - main
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_REGION: ${{ secrets.AWS_REGION }}
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
-
+    
     steps:
-      # 1. Checkout del código
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Check out repository
+      uses: actions/checkout@v3
 
-      # 2. Iniciar sesión en Amazon ECR
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+    - name: Log in to Amazon ECR
+      uses: aws-actions/amazon-ecr-login@v1
 
-      # 3. Construir la imagen Docker
-      - name: Build Docker image
-        run: |
-          IMAGE_TAG=latest
-          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/node:$IMAGE_TAG .
+    - name: Build Docker image
+      run: |
+        docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/node:latest .
+        
+    - name: Push Docker image to ECR
+      run: |
+        docker tag node:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/node:latest
+        docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/node:latest
 
-      # 4. Empujar la imagen al ECR
-      - name: Push Docker image to ECR
-        run: |
-          IMAGE_TAG=latest
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/node:$IMAGE_TAG
-
-      # 5. Actualizar el servicio en Amazon ECS
-      - name: Deploy to Amazon ECS
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: task-new-ecs
-          service: service-ecr-module-ecs
-          cluster: curso-modulo-ecs
-          wait-for-service-stability: true
+    - name: Update ECS service with new image
+      run: |
+        # Actualiza el servicio ECS con la nueva imagen
+        aws ecs update-service \
+          --cluster curso-modulo-ecs \
+          --service service-ecr-module-ecs \
+          --force-new-deployment \
+          --image ${ secrets.AWS_ACCOUNT_ID }.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/node:latest
