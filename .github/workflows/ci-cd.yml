@@ -38,5 +38,5 @@ jobs:
       with:
         cluster: curso-modulo-ecs
         service: service-ecr-module-ecs
-        task-definition: task-new-ecs
+        task-definition: task-new-ecs:1
         wait-for-service-stability: true
