@@ -33,10 +33,12 @@ jobs:
       run: |
         docker push 867344443923.dkr.ecr.us-east-1.amazonaws.com/node:latest
 
-    - name: Deploy to Amazon ECS
-      uses: aws-actions/amazon-ecs-deploy-task-definition@v2.2.0
-      with:
-        cluster: arn:aws:ecs:us-east-1:867344443923:cluster/curso-modulo-ecs
-        service: arn:aws:ecs:us-east-1:867344443923:service/curso-modulo-ecs/service-ecr-module-ecs
-        task-definition: arn:aws:ecs:us-east-1:867344443923:task-definition/task-new-ecs:1
-        wait-for-service-stability: true
+    - name: Update ECS service with new task definition
+      run: |
+          aws ecs update-service \
+            --cluster curso-modulo-ecs \
+            --service service-ecr-module-ecs \
+            --task-definition arn:aws:ecs:us-east-1:867344443923:task-definition/task-new-ecs:1 \
+            --force-new-deployment \
+            --region ${{ secrets.AWS_REGION }}
+      
