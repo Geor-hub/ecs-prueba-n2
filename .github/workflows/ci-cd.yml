@@ -34,7 +34,7 @@ jobs:
         docker push 867344443923.dkr.ecr.us-east-1.amazonaws.com/node:latest
 
     - name: Deploy to Amazon ECS
-      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v2.2.0
       with:
         cluster: curso-modulo-ecs
         service: service-ecr-module-ecs
