@@ -33,11 +33,10 @@ jobs:
       run: |
         docker push 867344443923.dkr.ecr.us-east-1.amazonaws.com/node:latest
 
-    - name: Update ECS service with new image
-      run: |
-        # Actualiza el servicio ECS con la nueva imagen
-        aws ecs update-service \
-          --cluster curso-modulo-ecs \
-          --service service-ecr-module-ecs \
-          --force-new-deployment \
-          --image ${ secrets.AWS_ACCOUNT_ID }.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/node:latest
+    - name: Deploy to Amazon ECS
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        cluster: curso-modulo-ecs
+        service: service-ecr-module-ecs
+        task-definition: task-new-ecs
+        wait-for-service-stability: true
